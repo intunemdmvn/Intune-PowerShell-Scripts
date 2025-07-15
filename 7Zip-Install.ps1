@@ -18,7 +18,8 @@ $installerFile = $latestFiles | Where-Object { $_.name -like "*.installer.yaml" 
 # Download and parse YAML content to get the Url of the latest installer file.
 $yamlUrl = $installerFile.download_url
 $yamlContent = Invoke-RestMethod -Uri $yamlUrl -Headers @{ 'User-Agent' = 'PowerShell' }
-$installerUrl = ($yamlContent -join "`n") -match "InstallerUrl:\s+(http.*)" | ForEach-Object { $Matches[1] }
+$null = ($yamlContent -join "`n") -match "InstallerUrl:\s+(http.*)"
+$installerUrl = $Matches[1]
 
 # Check the installed version number of the app and store it to the $installedVersion variable.
 $regPaths = @(
@@ -45,7 +46,7 @@ if ($installedVersion -lt $latestVersion) {
     $webClient.DownloadFile($installerUrl, "$env:TEMP\7zip-latest.exe")
 
     # If the app is running, stop it before processing the update.
-    $process = Get-Process -ProcessName 'WinRAR' -ErrorAction SilentlyContinue
+    $process = Get-Process -ProcessName '*7z*' -ErrorAction SilentlyContinue
     if ($process) {
         $process | Stop-Process -Force -ErrorAction SilentlyContinue
         Start-Sleep -Seconds 2
