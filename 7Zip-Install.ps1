@@ -18,8 +18,9 @@ $installerFile = $latestFiles | Where-Object { $_.name -like "*.installer.yaml" 
 # Download and parse YAML content to get the Url of the latest installer file.
 $yamlUrl = $installerFile.download_url
 $yamlContent = Invoke-RestMethod -Uri $yamlUrl -Headers @{ 'User-Agent' = 'PowerShell' }
-$null = ($yamlContent -join "`n") -match "InstallerUrl:\s+(http.*)"
-$installerUrl = $Matches[1]
+$yamlString = $yamlContent -join "`n"
+$installerUrls = [regex]::Matches($yamlString, "InstallerUrl:\s+(http[^\s]+)") | ForEach-Object { $_.Groups[1].Value }
+$installerUrl = $installerUrls[1]
 
 # Check the installed version number of the app and store it to the $installedVersion variable.
 $regPaths = @(
